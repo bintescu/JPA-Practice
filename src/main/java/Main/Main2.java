@@ -5,10 +5,15 @@ import Entity.Employee;
 import Entity.JobCategory;
 
 import javax.persistence.*;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Main2 {
     private static Scanner scanner = new Scanner(System.in);
@@ -20,26 +25,41 @@ public class Main2 {
     private static EntityManager entityManager = entityManagerFactory.createEntityManager();
     private static EntityTransaction entityTransaction = entityManager.getTransaction();
     private static Main2 singleTon;
+
+    private static final Logger lgr = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     public static void main(String[] args) {
 
-
+        setupLogger();
         entityTransaction.begin();
-
-
         selectOption();
         entityTransaction.commit();
         entityManager.close();
 
 
 
+
     }
 
+    public static void setupLogger() {
+        LogManager.getLogManager().reset();
+        lgr.setLevel(Level.INFO);
+
+        try {
+
+            FileHandler fh = new FileHandler("fileLogger",true);
+            lgr.addHandler(fh);
+            fh.setLevel(Level.FINE);
+        }
+        catch (IOException e){
+            lgr.log(Level.SEVERE,"The logger file was not create");
+        }
+    }
 
     public static void selectOption(){
         int response = 0;
         int secondResponse;
         do {
-            System.out.println(" What table do you want to interrogate ? employees - 1 , departments - 2 , jobcategories - 3 , employees by department - 4");
+            System.out.println(" What table do you want to interrogate ? \n 1 - Employees. \n 2 - Departments.\n 3 - JobCategories. \n 4 - Employees by department \n ");
             secondResponse = scanner.nextInt();
             scanner.reset();
             if(secondResponse >=1 && secondResponse<= 4) {
@@ -56,9 +76,6 @@ public class Main2 {
                 if (response >= 1 && response <= 4) {
                     switch (response) {
                         case 1: {
-                            employeeList.clear();
-                            departmentList.clear();
-                            jobCategoryList.clear();
                             doSearch(secondResponse);
                             if (secondResponse == 1) {
                                 for (Employee e : employeeList) {
@@ -104,6 +121,10 @@ public class Main2 {
                 } else {
                     System.out.println("This is not a valid table.");
                 }
+            }
+            else {
+                System.out.println("Good bye !");
+                lgr.info("Invalid table choice !");
             }
         }while(response >=1 && secondResponse >=1 && secondResponse <=4);
     }
@@ -186,11 +207,7 @@ public class Main2 {
                             System.out.println("Make it manager ? 1- Yes , 0 - No");
                             int manager = scanner.nextInt();
                             boolean newStatus;
-                            if (manager == 1) {
-                                newStatus = true;
-                            } else {
-                                newStatus = false;
-                            }
+                            newStatus = manager == 1;
                             for (Employee e : employeeList) {
                                 e.setManager(newStatus);
                             }
@@ -219,11 +236,7 @@ public class Main2 {
                             System.out.println("Is it active ? 1- Yes , 0 - No");
                             int active = scanner.nextInt();
                             boolean newStatus;
-                            if (active == 1) {
-                                newStatus = true;
-                            } else {
-                                newStatus = false;
-                            }
+                            newStatus = active == 1;
                             for (Employee e : employeeList) {
                                 e.setManager(newStatus);
                             }
@@ -305,11 +318,7 @@ public class Main2 {
                             System.out.println("Does he have driving license ? 1- Yes , 0 - No");
                             int lincese = scanner.nextInt();
                             boolean newStatus;
-                            if (lincese == 1) {
-                                newStatus = true;
-                            } else {
-                                newStatus = false;
-                            }
+                            newStatus = lincese == 1;
                             for (Employee e : employeeList) {
                                 e.setManager(newStatus);
                             }
@@ -355,12 +364,15 @@ public class Main2 {
     }
 
     public static void doSearch(int response){
+        employeeList.clear();
+        departmentList.clear();
+        jobCategoryList.clear();
         scanner.reset();
         int id;
         switch (response){
             case 1:{
                 do {
-                    Employee employee = new Employee();
+                    Employee employee;
                     id = printOption();
                     if(id > 0 ){
                         employee = entityManager.find(Employee.class, id);
@@ -372,7 +384,7 @@ public class Main2 {
             }
             case 2:{
                 do {
-                    Department department = new Department();
+                    Department department;
                     id = printOption();
                     if(id > 0 ){
                         department = entityManager.find(Department.class, id);
@@ -383,7 +395,7 @@ public class Main2 {
             }
             case 3:{
                 do {
-                    JobCategory jobCategory = new JobCategory();
+                    JobCategory jobCategory;
                     id = printOption();
                     if(id > 0 ){
                         jobCategory = entityManager.find(JobCategory.class,id);
@@ -411,8 +423,7 @@ public class Main2 {
 
     public static void printEmployees(){
         List<Employee> result = entityManager.createQuery("from Employee", Employee.class).getResultList();
-        for (int i = 0; i < result.size(); i++) {
-            Employee employee = result.get(i);
+        for (Employee employee : result) {
             System.out.println(employee + "\n");
 
         }
@@ -421,8 +432,7 @@ public class Main2 {
         Query query = entityManager.createQuery("select e from Employee e where e.department = ?1", Employee.class);
         query.setParameter(1, entityManager.find(Department.class, departmentId));
         employeeList = query.getResultList();
-        for (int i = 0; i < employeeList.size(); i++) {
-            Employee employee = employeeList.get(i);
+        for (Employee employee : employeeList) {
             System.out.println(employee + "\n");
 
         }
@@ -468,13 +478,11 @@ public class Main2 {
 
     public static void printDepartments(boolean returnAll){
         List<Department> result = entityManager.createQuery( "from Department", Department.class ).getResultList();
-        for(int i=0;i<result.size();i++)
-        {
-            Department department = result.get(i);
+        for (Department department : result) {
             System.out.println(department);
 
         }
-        if(returnAll == true){
+        if(returnAll){
             departmentList.addAll(result);
         }
     }

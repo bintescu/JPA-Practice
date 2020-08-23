@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2020-08-23T16:22:15.218425Z</date>
+  <millis>1598199735218</millis>
+  <nanos>425000</nanos>
+  <sequence>10</sequence>
+  <logger>global</logger>
+  <level>INFO</level>
+  <class>Main.Main2</class>
+  <method>selectOption</method>
+  <thread>1</thread>
+  <message>Invalid table choice !</message>
+</record>
+</log>
